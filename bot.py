@@ -2,22 +2,17 @@ import discord
 import os
 import json
 from discord.ext import commands
-from openai import AsyncOpenAI
 from storage import Storage
+from openai_helper import OpenAIHelper
 
 DIRECT_MESSAGE_CHANNEL_NAME = 'Direct Message'
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
 bot_token = os.getenv('DISCORD_BOT_TOKEN')
 
-# Initialize Storage
+# Initialize 
 storage = Storage()
-
-
-client_openai = AsyncOpenAI(
-    api_key=openai_api_key,  # this is also the default, it can be omitted
-    organization='org-n9AnfI7a4lvpGr50hbypFLxB',
-)
+openai_helper = OpenAIHelper()
 
 
 intents = discord.Intents.default()
@@ -76,28 +71,8 @@ async def on_close():
 
 @bot.command()
 async def ask(ctx, *, question):
-    print(f'question is: {question}')
-    try:
-
-        
-        completion = await client_openai.chat.completions.create(
-            model="gpt-4-1106-preview",
-            #response_format={ "type": "json_object" },
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to help in prepare summary from conversation."},
-                {"role": "user", "content": question}
-            ],
-            max_tokens=100
-        )
-        
-        response_str = completion.model_dump_json(indent=2)
-        response_json = json.loads(response_str)
-        response_txt = response_json['choices'][0]['message']['content']
-        
-        print(f'question: {question}; answer: {response_txt}')
-        await ctx.send(response_txt)
-    except Exception as e:
-        await ctx.send('An error occurred: {}'.format(str(e)))
+    response_txt = await openai_helper.ask_openai(question)
+    await ctx.send(response_txt)
 
 
 
