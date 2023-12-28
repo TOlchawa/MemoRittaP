@@ -1,9 +1,11 @@
 import discord
 import os
 import json
+import asyncio
 from discord.ext import commands
 from storage import Storage
 from openai_helper import OpenAIHelper
+from process_summaries import SummaryManager
 
 DIRECT_MESSAGE_CHANNEL_NAME = 'Direct Message'
 
@@ -15,13 +17,22 @@ storage = Storage()
 openai_helper = OpenAIHelper()
 
 
+
 intents = discord.Intents.default()
 intents.messages = True  # Enable message intent
 intents.message_content = True  # Enable message content intent
 
+class MyBot(commands.Bot):
+    async def setup_hook(self):
+        print(f'--- setup hook ---')  
+        # Setup tasks here
+        await setup()
+        
+bot = MyBot(command_prefix='!', intents=intents)
 
 # Create an instance of the bot
-bot = commands.Bot(command_prefix='!', intents=intents)
+#bot = commands.Bot(command_prefix='!', intents=intents)
+
 
 # Define an event
 @bot.event
@@ -104,6 +115,21 @@ async def on_error(event, *args, **kwargs):
             f.write(f'Unhandled message: {args[0]}\n')
         else:
             raise
+
+        
+
+async def setup():
+    bot.loop.create_task(background_task())
+
+async def background_task():
+    scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 15))
+    summary_manager = SummaryManager(storage)
+    while not bot.is_closed():
+        print("Executing scheduled task")
+        
+        await summary_manager.process_summaries()
+            
+        await asyncio.sleep(scheduler_period * 60)
 
 
 # Run the bot with your token

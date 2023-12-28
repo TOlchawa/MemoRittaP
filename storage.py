@@ -52,3 +52,26 @@ class Storage:
             upsert=True
         )
 
+
+    def get_messages_summary(self):
+        summaries = []
+
+        # Aggregation pipeline to group messages by server and channel
+        pipeline = [
+            {"$group": {
+                "_id": {"guild_id": "$guild_id", "channel_id": "$channel_id", "channel_name": "$channel_name"},
+                "message_count": {"$sum": 1}
+            }}
+        ]
+        results = self.messages_collection.aggregate(pipeline)
+
+        for result in results:
+            guild_id = result["_id"]["guild_id"]
+            channel_id = result["_id"]["channel_id"]
+            channel_name = result["_id"]["channel_name"]
+            message_count = result["message_count"]
+
+            header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
+            summaries.append(header)
+
+        return summaries
