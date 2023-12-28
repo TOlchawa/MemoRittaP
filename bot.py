@@ -60,10 +60,10 @@ async def ask(ctx, *, question):
         
         completion = await client_openai.chat.completions.create(
             model="gpt-4-1106-preview",
-            response_format={ "type": "json_object" },
+            #response_format={ "type": "json_object" },
             messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
-                {"role": "user", "content": "Who won the world series in 2020?"}
+                {"role": "system", "content": "You are a helpful assistant designed to help in prepare summary from conversation."},
+                {"role": "user", "content": question}
             ],
             max_tokens=100
         )
