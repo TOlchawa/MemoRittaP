@@ -1,5 +1,6 @@
 import discord
 import os
+import json
 from discord.ext import commands
 from pymongo import MongoClient
 from openai import AsyncOpenAI
@@ -63,11 +64,14 @@ async def ask(ctx, *, question):
             messages=[
                 {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
                 {"role": "user", "content": "Who won the world series in 2020?"}
-            ]
+            ],
+            max_tokens=100
         )
         
-        response_json = completion.model_dump_json(indent=2)
-        response_txt = response_json.choices[0].content
+        response_str = completion.model_dump_json(indent=2)
+        response_json = json.loads(response_str)
+        response_txt = response_json['choices'][0]['message']['content']
+        
         print(f'question: {question}; answer: {response_txt}')
         await ctx.send(response_txt)
     except Exception as e:
