@@ -5,6 +5,8 @@ from discord.ext import commands
 from openai import AsyncOpenAI
 from storage import Storage
 
+DIRECT_MESSAGE_CHANNEL_NAME = 'Direct Message'
+
 openai_api_key = os.getenv('OPENAI_API_KEY')
 bot_token = os.getenv('DISCORD_BOT_TOKEN')
 
@@ -37,15 +39,27 @@ async def on_message(message):
     if message.author == bot.user:
         return
     guild_id = message.guild.id if message.guild else None
-    storage.insert_message(str(message.author.id), message.content, str(message.channel.id), message.channel.name, str(guild_id))
+    
+    if isinstance(message.channel, discord.DMChannel):
+        channel_name = DIRECT_MESSAGE_CHANNEL_NAME
+    else:
+        channel_name = message.channel.name
+
+    storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name, str(guild_id))
     await bot.process_commands(message)
 
 @bot.event
 async def on_message_edit(before, after):
     if before.content != after.content:
         guild_id = after.guild.id if after.guild else None
-        storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id))
-        print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
+
+    if isinstance(after.channel, discord.DMChannel):
+        channel_name = DIRECT_MESSAGE_CHANNEL_NAME
+    else:
+        channel_name = after.channel.name
+
+    storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id))
+    print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
 
 
 
@@ -86,15 +100,16 @@ async def ask(ctx, *, question):
         await ctx.send('An error occurred: {}'.format(str(e)))
 
 
-    
+
 @bot.event
 async def on_error(event, *args, **kwargs):
     print(f'error: {event}')
-    with open('err.log', 'a') as f:
+    with open('err.log', 'a', encoding='utf-8') as f:
         if event == 'on_message':
             f.write(f'Unhandled message: {args[0]}\n')
         else:
             raise
+
 
 # Run the bot with your token
 bot.run(bot_token)
