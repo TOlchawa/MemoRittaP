@@ -31,21 +31,22 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
     
+
 @bot.event
 async def on_message(message):
-    # Don't respond to messages sent by the bot itself
     if message.author == bot.user:
         return
-    print(f'Message from {message.author.id}: {message.content}')
-    await bot.process_commands(message)  # Allows other commands to be processed
+    guild_id = message.guild.id if message.guild else None
+    storage.insert_message(str(message.author.id), message.content, str(message.channel.id), message.channel.name, str(guild_id))
+    await bot.process_commands(message)
 
 @bot.event
 async def on_message_edit(before, after):
-    # Check if the content of the message has been changed
     if before.content != after.content:
-        print(f"Message edited by {after.author.id}:")
-        print(f"Before: {before.content}")
-        print(f"After: {after.content}")
+        guild_id = after.guild.id if after.guild else None
+        storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id))
+        print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
+
 
 
 # Define a command
