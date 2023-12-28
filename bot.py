@@ -1,10 +1,16 @@
 import discord
 from discord.ext import commands
+from pymongo import MongoClient
+
 
 intents = discord.Intents.default()
 # Enable any additional intents as needed
 # For example, if you need member join events:
 # intents.members = True
+
+client = MongoClient('mongodb://localhost:27017/')
+db = client.memorittap
+collection = db.notes
 
 
 # Create an instance of the bot
@@ -19,6 +25,20 @@ async def on_ready():
 @bot.command()
 async def hello(ctx):
     await ctx.send('Hello World!')
+    
+
+@bot.event
+async def on_close():
+    client.close()
+
+@bot.command()
+async def add(ctx, key, value):
+    # Insert a document into the collection
+    collection.insert_one({key: value})
+    await ctx.send(f'Added {key}: {value}')
+
+
+
     
 @bot.event
 async def on_error(event, *args, **kwargs):
