@@ -57,7 +57,7 @@ async def on_message(message):
 @bot.event
 async def on_message_edit(before, after):
     # Ignore messages sent by the bot
-    if message.author == bot.user:
+    if after.author == bot.user:
         return
 
     if before.content != after.content:
@@ -84,7 +84,7 @@ async def authorize_user(ctx, user_id: int):
 @bot.command()
 async def ask(ctx, *, question):
     # Ignore messages sent by the bot
-    if message.author == bot.user:
+    if ctx.author == bot.user:
         return
 
     if not storage.is_user_authorized(ctx.author.id):
