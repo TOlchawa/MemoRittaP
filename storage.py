@@ -10,7 +10,7 @@ class Storage:
         self.db = self.client.memorittap
         self.messages_collection = self.db.messages
 
-    def insert_message(self, author_id, text, channel_id, channel_name, guild_id):
+    def insert_message(self, author_id, text, channel_id, channel_name, guild_id, direct_message):
         document = {
             "uuid": str(uuid.uuid4()),
             "author_id": author_id,
@@ -19,11 +19,12 @@ class Storage:
             "modified": False,
             "channel_id": channel_id,
             "channel_name": channel_name,
-            "guild_id": guild_id
+            "guild_id": guild_id,
+            "direct_message": direct_message
         }
         self.messages_collection.insert_one(document)
 
-    def update_message(self, message_id, new_text, channel_id, channel_name, guild_id):
+    def update_message(self, message_id, new_text, channel_id, channel_name, guild_id, direct_message):
         self.messages_collection.update_one(
             {"uuid": message_id},
             {"$set": {
@@ -31,7 +32,8 @@ class Storage:
                 "modified": True, 
                 "channel_id": channel_id, 
                 "channel_name": channel_name, 
-                "guild_id": guild_id
+                "guild_id": guild_id,
+                "direct_message": direct_message
             }}
         )
 

@@ -34,28 +34,23 @@ async def on_message(message):
     if message.author == bot.user:
         return
     guild_id = message.guild.id if message.guild else None
+    is_direct_message = isinstance(message.channel, discord.DMChannel)
     
-    if isinstance(message.channel, discord.DMChannel):
-        channel_name = DIRECT_MESSAGE_CHANNEL_NAME
-    else:
-        channel_name = message.channel.name
+    channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else message.channel.name
 
-    storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name, str(guild_id))
+    storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name, str(guild_id), is_direct_message)
     await bot.process_commands(message)
 
 @bot.event
 async def on_message_edit(before, after):
     if before.content != after.content:
         guild_id = after.guild.id if after.guild else None
+        is_direct_message = isinstance(after.channel, discord.DMChannel)
 
-    if isinstance(after.channel, discord.DMChannel):
-        channel_name = DIRECT_MESSAGE_CHANNEL_NAME
-    else:
-        channel_name = after.channel.name
+        channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else after.channel.name
 
-    storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id))
-    print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
-
+        storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id), is_direct_message)
+        print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
 
 
 # Define a command
