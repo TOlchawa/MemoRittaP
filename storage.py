@@ -9,6 +9,8 @@ class Storage:
         self.client = MongoClient(mongodb_url)
         self.db = self.client.memorittap
         self.messages_collection = self.db.messages
+        self.config_collection = self.db.config
+
 
     def insert_message(self, author_id, text, channel_id, channel_name, guild_id, direct_message):
         document = {
@@ -35,5 +37,18 @@ class Storage:
                 "guild_id": guild_id,
                 "direct_message": direct_message
             }}
+        )
+        
+    def is_user_authorized(self, user_id):
+        config = self.config_collection.find_one({"config_type": "authorized_users"})
+        if config and "users" in config:
+            return str(user_id) in config["users"]
+        return False
+
+    def add_authorized_user(self, user_id):
+        self.config_collection.update_one(
+            {"config_type": "authorized_users"},
+            {"$addToSet": {"users": str(user_id)}},
+            upsert=True
         )
 

@@ -31,8 +31,21 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    # Ignore messages sent by the bot
     if message.author == bot.user:
         return
+    
+    # Don't process messages sent by the bot itself
+    if message.author == bot.user:
+        return
+
+    # Process commands first
+    ctx = await bot.get_context(message)
+    if ctx.valid:
+        # It's a command, so skip saving and process the command
+        await bot.invoke(ctx)
+        return
+    
     guild_id = message.guild.id if message.guild else None
     is_direct_message = isinstance(message.channel, discord.DMChannel)
     
@@ -43,6 +56,10 @@ async def on_message(message):
 
 @bot.event
 async def on_message_edit(before, after):
+    # Ignore messages sent by the bot
+    if message.author == bot.user:
+        return
+
     if before.content != after.content:
         guild_id = after.guild.id if after.guild else None
         is_direct_message = isinstance(after.channel, discord.DMChannel)
@@ -53,19 +70,27 @@ async def on_message_edit(before, after):
         print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
 
 
-# Define a command
-@bot.command()
-async def hello(ctx):
-    await ctx.send('Hello World!')
-    
 
 @bot.event
 async def on_close():
     client.close()
 
+@bot.command()
+@commands.is_owner()  # Only allow the bot owner to use this command
+async def authorize_user(ctx, user_id: int):
+    storage.add_authorized_user(user_id)
+    await ctx.send(f"User {user_id} has been authorized.")
 
 @bot.command()
 async def ask(ctx, *, question):
+    # Ignore messages sent by the bot
+    if message.author == bot.user:
+        return
+
+    if not storage.is_user_authorized(ctx.author.id):
+        await ctx.send("You are not authorized to use this command.")
+        print(f'not authorized: {ctx.author.id}')
+        return
     async with ctx.typing():
         response_txt = await openai_helper.ask_openai(question)
     await ctx.send(response_txt)
