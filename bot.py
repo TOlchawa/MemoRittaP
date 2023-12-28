@@ -17,9 +17,8 @@ client_openai = AsyncOpenAI(
 
 
 intents = discord.Intents.default()
-# Enable any additional intents as needed
-# For example, if you need member join events:
-# intents.members = True
+intents.messages = True  # Enable message intent
+intents.message_content = True  # Enable message content intent
 
 client = MongoClient('mongodb://localhost:27017/')
 db = client.memorittap
@@ -33,6 +32,15 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
+    
+@bot.event
+async def on_message(message):
+    # Don't respond to messages sent by the bot itself
+    if message.author == bot.user:
+        return
+    print(f'Message from {message.author.id}: {message.content}')
+    await bot.process_commands(message)  # Allows other commands to be processed
+
 
 # Define a command
 @bot.command()
