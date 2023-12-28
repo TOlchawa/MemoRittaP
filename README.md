@@ -1,0 +1,2 @@
+# MemoRittaP
+MemoRitta in Python
