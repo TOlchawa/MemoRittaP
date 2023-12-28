@@ -2,12 +2,14 @@ import discord
 import os
 import json
 from discord.ext import commands
-from pymongo import MongoClient
 from openai import AsyncOpenAI
+from storage import Storage
 
 openai_api_key = os.getenv('OPENAI_API_KEY')
 bot_token = os.getenv('DISCORD_BOT_TOKEN')
-mongodb_url = os.getenv('MONGODB_URL')
+
+# Initialize Storage
+storage = Storage()
 
 
 client_openai = AsyncOpenAI(
@@ -19,10 +21,6 @@ client_openai = AsyncOpenAI(
 intents = discord.Intents.default()
 intents.messages = True  # Enable message intent
 intents.message_content = True  # Enable message content intent
-
-client = MongoClient('mongodb://localhost:27017/')
-db = client.memorittap
-collection = db.notes
 
 
 # Create an instance of the bot
@@ -41,6 +39,14 @@ async def on_message(message):
     print(f'Message from {message.author.id}: {message.content}')
     await bot.process_commands(message)  # Allows other commands to be processed
 
+@bot.event
+async def on_message_edit(before, after):
+    # Check if the content of the message has been changed
+    if before.content != after.content:
+        print(f"Message edited by {after.author.id}:")
+        print(f"Before: {before.content}")
+        print(f"After: {after.content}")
+
 
 # Define a command
 @bot.command()
@@ -55,7 +61,7 @@ async def on_close():
 @bot.command()
 async def add(ctx, key, value):
     # Insert a document into the collection
-    collection.insert_one({key: value})
+    storage.insert_document({key: value})
     await ctx.send(f'Added {key}: {value}')
 
 
