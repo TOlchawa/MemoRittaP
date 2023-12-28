@@ -1,6 +1,13 @@
 import discord
+import os
+import openai
 from discord.ext import commands
 from pymongo import MongoClient
+
+openai.api_key = os.getenv('OPENAI_API_KEY')
+bot_token = os.getenv('DISCORD_BOT_TOKEN')
+mongodb_url = os.getenv('MONGODB_URL')
+
 
 
 intents = discord.Intents.default()
@@ -37,11 +44,25 @@ async def add(ctx, key, value):
     collection.insert_one({key: value})
     await ctx.send(f'Added {key}: {value}')
 
+@bot.command()
+async def ask(ctx, *, question):
+    try:
+        response = openai.Completion.create(
+            engine="gpt-4-1106-preview",
+            prompt=question,
+            max_tokens=100
+        )
+        response_txt = response.choices[0].text.strip()
+        print(f'question: {question}; answer: {response_txt}')
+        await ctx.send(response_txt)
+    except Exception as e:
+        await ctx.send('An error occurred: {}'.format(str(e)))
 
 
     
 @bot.event
 async def on_error(event, *args, **kwargs):
+    print(f'error: {event}')
     with open('err.log', 'a') as f:
         if event == 'on_message':
             f.write(f'Unhandled message: {args[0]}\n')
