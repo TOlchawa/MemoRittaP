@@ -1,13 +1,18 @@
 import discord
 import os
-import openai
 from discord.ext import commands
 from pymongo import MongoClient
+from openai import AsyncOpenAI
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai_api_key = os.getenv('OPENAI_API_KEY')
 bot_token = os.getenv('DISCORD_BOT_TOKEN')
 mongodb_url = os.getenv('MONGODB_URL')
 
+
+client_openai = AsyncOpenAI(
+    api_key=openai_api_key,  # this is also the default, it can be omitted
+    organization='org-n9AnfI7a4lvpGr50hbypFLxB',
+)
 
 
 intents = discord.Intents.default()
@@ -44,15 +49,25 @@ async def add(ctx, key, value):
     collection.insert_one({key: value})
     await ctx.send(f'Added {key}: {value}')
 
+
+
 @bot.command()
 async def ask(ctx, *, question):
+    print(f'question is: {question}')
     try:
-        response = openai.Completion.create(
-            engine="gpt-4-1106-preview",
-            prompt=question,
-            max_tokens=100
+
+        
+        completion = await client_openai.chat.completions.create(
+            model="gpt-4-1106-preview",
+            response_format={ "type": "json_object" },
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
+                {"role": "user", "content": "Who won the world series in 2020?"}
+            ]
         )
-        response_txt = response.choices[0].text.strip()
+        
+        response_json = completion.model_dump_json(indent=2)
+        response_txt = response_json.choices[0].content
         print(f'question: {question}; answer: {response_txt}')
         await ctx.send(response_txt)
     except Exception as e:
