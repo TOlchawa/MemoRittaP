@@ -75,3 +75,14 @@ class Storage:
             summaries.append(header)
 
         return summaries
+
+    def get_listened_channels(self):
+        config = self.config_collection.find_one({"config_type": "listened_channels"})
+        return config.get("channels", {}) if config else {}
+        
+    def add_listened_channel(self, guild_id, channel_name):
+        self.config_collection.update_one(
+            {"config_type": "listened_channels"},
+            {"$addToSet": {"channels." + str(guild_id): channel_name}},
+            upsert=True
+        )
