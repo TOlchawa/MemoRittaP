@@ -89,4 +89,4 @@ async def on_error(event, *args, **kwargs):
             raise
 
 # Run the bot with your token
-bot.run('MTE4OTkxNDIxMTQ4MTAzMDY4Ng.G_OLEn.HeZZrKeD16e4cZh1DIjoB3H_JMYY9WMkZma86M')
+bot.run(bot_token)
