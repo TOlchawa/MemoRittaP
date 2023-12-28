@@ -59,13 +59,6 @@ async def hello(ctx):
 async def on_close():
     client.close()
 
-@bot.command()
-async def add(ctx, key, value):
-    # Insert a document into the collection
-    storage.insert_document({key: value})
-    await ctx.send(f'Added {key}: {value}')
-
-
 
 @bot.command()
 async def ask(ctx, *, question):
