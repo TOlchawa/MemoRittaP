@@ -71,9 +71,9 @@ async def on_close():
 
 @bot.command()
 async def ask(ctx, *, question):
-    response_txt = await openai_helper.ask_openai(question)
+    async with ctx.typing():
+        response_txt = await openai_helper.ask_openai(question)
     await ctx.send(response_txt)
-
 
 
 @bot.event

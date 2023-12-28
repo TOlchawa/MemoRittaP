@@ -5,6 +5,7 @@ from openai import AsyncOpenAI
 class OpenAIHelper:
     def __init__(self):
         openai_api_key = os.getenv('OPENAI_API_KEY')
+        self.max_tokens = int(os.getenv('OPENAI_MAX_TOKENS', 256))
         self.client_openai = AsyncOpenAI(
             api_key=openai_api_key,  # this is also the default, it can be omitted
             organization='org-n9AnfI7a4lvpGr50hbypFLxB',
@@ -18,7 +19,7 @@ class OpenAIHelper:
                     {"role": "system", "content": "You are a helpful assistant designed to help in prepare summary from conversation."},
                     {"role": "user", "content": question}
                 ],
-                max_tokens=100
+                max_tokens=self.max_tokens
             )
 
             response_str = completion.model_dump_json(indent=2)
