@@ -8,6 +8,8 @@ class SummaryManager:
         print(f"summaries: {summaries}", flush=True)
         for h in summaries:
             print(f'summary h: {h}')
+            g_id = h["guild_id"]
+            print(f'summary h["guild_id"]: {g_id}')
             await self.send_message_to_channel(self, h["guild_id"], h["channel_id"], h["message_count"])
 
     async def send_message_to_channel(self, guild_id, channel_id, message_content):
