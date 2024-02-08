@@ -74,6 +74,7 @@ class Storage:
             header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
             summaries.append(header)
 
+        print(f"summaries: {summaries}", flush=True)
         return summaries
 
     def get_listened_channels(self):

@@ -5,6 +5,7 @@ class SummaryManager:
 
     async def process_summaries(self):
         summaries = self.storage.get_messages_summary()
+        print(f"summaries: {summaries}", flush=True)
         for h in summaries:
             print(f'summary h: {h}')
             await self.send_message_to_channel(self, h.guild_id, h.channel_id, h.message_count)
