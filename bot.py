@@ -156,7 +156,7 @@ async def background_task():
     scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 1))
     summary_manager = SummaryManager(bot, storage)
     while not bot.is_closed():
-        print("Executing scheduled task")
+        print("Executing scheduled task", flush=True)
         
         await summary_manager.process_summaries()
             
