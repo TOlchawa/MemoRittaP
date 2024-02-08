@@ -7,7 +7,7 @@ class SummaryManager:
         summaries = self.storage.get_messages_summary()
         for h in summaries:
             print(f'summary h: {h}')
-            await self.send_message_to_channel(self, h.Server, h.Channel, h.Messages)
+            await self.send_message_to_channel(self, h.guild_id, h.channel_id, h.message_count)
 
     async def send_message_to_channel(self, guild_id, channel_id, message_content):
         guild = self.bot.get_guild(guild_id)
