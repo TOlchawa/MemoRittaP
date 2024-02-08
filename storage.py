@@ -74,7 +74,7 @@ class Storage:
             # header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
             # summaries.append(header)
 
-            summaries.append({"guild_id": "$guild_id", "channel_id": "$channel_id", "channel_name": "$channel_name", "$message_count": "$message_count"})
+            summaries.append({"guild_id": guild_id, "channel_id": channel_id, "channel_name": channel_name, "message_count": message_count})
 
         print(f"summaries: {summaries}", flush=True)
         return summaries
