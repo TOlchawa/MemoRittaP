@@ -71,8 +71,10 @@ class Storage:
             channel_name = result["_id"]["channel_name"]
             message_count = result["message_count"]
 
-            header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
-            summaries.append(header)
+            # header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
+            # summaries.append(header)
+
+            summaries.append(result)
 
         print(f"summaries: {summaries}", flush=True)
         return summaries
