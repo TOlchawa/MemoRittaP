@@ -74,7 +74,7 @@ async def on_message(message):
 @bot.event
 async def on_message_edit(before, after):
     # Ignore messages sent by the bot
-    if message.author == bot.user:
+    if before.author == bot.user:
         return
     
     # Ignore messages sent by the bot
@@ -96,13 +96,24 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_close():
-    client.close()
+    print(f"Closing bot ...", flush=True)
+    storage.close()
+
 
 @bot.command()
 @commands.is_owner()  # Only allow the bot owner to use this command
-async def authorize_user(ctx, user_id: int):
-    storage.add_authorized_user(user_id)
-    await ctx.send(f"User {user_id} has been authorized.")
+async def authorize_user(ctx, username: str):
+    # Find the user by username
+    user = discord.utils.find(lambda u: u.name == username, bot.users)
+    if user is None:
+        await ctx.send(f"User {username} not found.")
+        return
+
+    # Add the user's ID to storage
+    storage.add_authorized_user(user.id)
+
+    await ctx.send(f"User {username} (ID: {user.id}) has been authorized.")
+
     
 @bot.command()
 @commands.has_permissions(administrator=True)
@@ -142,8 +153,8 @@ async def setup():
     bot.loop.create_task(background_task())
 
 async def background_task():
-    scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 15))
-    summary_manager = SummaryManager(storage)
+    scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 1))
+    summary_manager = SummaryManager(bot, storage)
     while not bot.is_closed():
         print("Executing scheduled task")
         

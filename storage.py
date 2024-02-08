@@ -86,3 +86,7 @@ class Storage:
             {"$addToSet": {"channels." + str(guild_id): channel_name}},
             upsert=True
         )
+
+    def close(self):
+        print(f"Closing storage ...", flush=True)
+        self.client.close()
