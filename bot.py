@@ -21,6 +21,7 @@ config_helper = ConfigurationHelper(storage)
 
 
 intents = discord.Intents.default()
+intents.members = True
 intents.messages = True  # Enable message intent
 intents.message_content = True  # Enable message content intent
 
@@ -29,7 +30,8 @@ class MyBot(commands.Bot):
         print(f'--- setup hook ---')  
         # Setup tasks here
         await setup()
-        
+
+
 bot = MyBot(command_prefix='!', intents=intents)
 
 # Create an instance of the bot
@@ -102,26 +104,47 @@ async def on_close():
 
 @bot.command()
 @commands.is_owner()  # Only allow the bot owner to use this command
-async def authorize_user(ctx, username: str):
-    # Find the user by username
-    user = discord.utils.find(lambda u: u.name == username, bot.users)
-    if user is None:
+async def mr_authorize_user(ctx, username: str):
+    # Find the user by username within the guild
+    member = discord.utils.find(lambda m: m.name == username, ctx.guild.members)
+    if member is None:
+        print(f"Authorize user not found: {username}")
         await ctx.send(f"User {username} not found.")
         return
 
     # Add the user's ID to storage
-    storage.add_authorized_user(user.id)
+    print(f"Authorize user: {member} with ID {member.id}")
+    storage.add_authorized_user(member.id)
 
-    await ctx.send(f"User {username} (ID: {user.id}) has been authorized.")
+    await ctx.send(f"User {username} (ID: {member.id}) has been authorized.")
+
 
     
 @bot.command()
 @commands.has_permissions(administrator=True)
-async def addlistenedchannel(ctx, channel_name):
+async def mr_add_channel(ctx, channel_name):
     guild_id = str(ctx.guild.id)
     storage.add_listened_channel(guild_id, channel_name)
     await ctx.send(f"Channel {channel_name} has been added to the listened channels for this guild.")
 
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def mr_del_channel(ctx, channel_name):
+    guild_id = str(ctx.guild.id)
+    storage.remove_listened_channel(guild_id, channel_name)
+    await ctx.send(f"Channel {channel_name} has been added to the listened channels for this guild.")
+
+
+
+@bot.command()
+@commands.has_permissions(administrator=True)
+async def mr_show_config(ctx):
+    guild_id = str(ctx.guild.id)
+    print(f"show_config...")
+    config = storage.getconfig(guild_id)
+    print(f"config for {guild_id}: {config}")
+    await ctx.send(f"Config: {config}")
 
 @bot.command()
 async def ask(ctx, *, question):
@@ -164,4 +187,5 @@ async def background_task():
 
 
 # Run the bot with your token
+print(f"token: ...{bot_token[8:-8]}...")
 bot.run(bot_token)
