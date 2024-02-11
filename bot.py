@@ -18,38 +18,38 @@ storage = Storage()
 openai_helper = OpenAIHelper()
 config_helper = ConfigurationHelper(storage)
 
-
-
 intents = discord.Intents.default()
 intents.members = True
 intents.messages = True  # Enable message intent
 intents.message_content = True  # Enable message content intent
 
+
 class MyBot(commands.Bot):
     async def setup_hook(self):
-        print(f'--- setup hook ---')  
+        print(f'--- setup hook ---')
         # Setup tasks here
         await setup()
 
 
 bot = MyBot(command_prefix='!', intents=intents)
 
+
 # Create an instance of the bot
-#bot = commands.Bot(command_prefix='!', intents=intents)
+# bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 # Define an event
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
-    
+
 
 @bot.event
 async def on_message(message):
     # Ignore messages sent by the bot
     if message.author == bot.user:
         return
-    
+
     # Don't process messages sent by the bot itself
     if message.author == bot.user:
         return
@@ -60,17 +60,17 @@ async def on_message(message):
         # It's a command, so skip saving and process the command
         await bot.invoke(ctx)
         return
-    
+
     guild_id = message.guild.id if message.guild else None
     is_direct_message = isinstance(message.channel, discord.DMChannel)
-    
+
     channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else message.channel.name
 
     if not is_direct_message and config_helper.is_channel_listened(guild_id, channel_name):
-        storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name, str(guild_id), is_direct_message)
-        
-    await bot.process_commands(message)
+        storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name,
+                               str(guild_id), is_direct_message)
 
+    await bot.process_commands(message)
 
 
 @bot.event
@@ -78,7 +78,7 @@ async def on_message_edit(before, after):
     # Ignore messages sent by the bot
     if before.author == bot.user:
         return
-    
+
     # Ignore messages sent by the bot
     if after.author == bot.user:
         return
@@ -90,10 +90,10 @@ async def on_message_edit(before, after):
         channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else after.channel.name
 
         if not is_direct_message and config_helper.is_channel_listened(guild_id, channel_name):
-            storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id), is_direct_message)
-            
-        print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
+            storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id),
+                                   is_direct_message)
 
+        print(f"Message edited by {after.author.id}: [Before]: {before.content} [After]: {after.content}")
 
 
 @bot.event
@@ -119,7 +119,6 @@ async def mr_authorize_user(ctx, username: str):
     await ctx.send(f"User {username} (ID: {member.id}) has been authorized.")
 
 
-    
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def mr_add_channel(ctx, channel_name):
@@ -136,7 +135,6 @@ async def mr_del_channel(ctx, channel_name):
     await ctx.send(f"Channel {channel_name} has been added to the listened channels for this guild.")
 
 
-
 @bot.command()
 @commands.has_permissions(administrator=True)
 async def mr_show_config(ctx):
@@ -145,6 +143,7 @@ async def mr_show_config(ctx):
     config = storage.getconfig(guild_id)
     print(f"config for {guild_id}: {config}")
     await ctx.send(f"Config: {config}")
+
 
 @bot.command()
 async def ask(ctx, *, question):
@@ -170,19 +169,19 @@ async def on_error(event, *args, **kwargs):
         else:
             raise
 
-        
 
 async def setup():
     bot.loop.create_task(background_task())
+
 
 async def background_task():
     scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 1))
     summary_manager = SummaryManager(bot, storage)
     while not bot.is_closed():
         print("Executing scheduled task", flush=True)
-        
+
         await summary_manager.process_summaries()
-            
+
         await asyncio.sleep(scheduler_period * 60)
 
 
