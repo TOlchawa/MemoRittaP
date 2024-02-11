@@ -1,6 +1,5 @@
 import discord
 import os
-import json
 import asyncio
 from discord.ext import commands
 from storage import Storage
