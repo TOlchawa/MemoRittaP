@@ -45,6 +45,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+    print(f"on_message: ({message[:32]}...)")
     # Ignore messages sent by the bot
     if message.author == bot.user:
         return
@@ -74,6 +75,7 @@ async def on_message(message):
 
 @bot.event
 async def on_message_edit(before, after):
+    print(f"on_message_edit: ({after[:32]}...)")
     # Ignore messages sent by the bot
     if before.author == bot.user:
         return
