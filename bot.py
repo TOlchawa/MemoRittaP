@@ -45,7 +45,7 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print(f"on_message: ({message.content[:32].replace("\n", "\\n")}...)")
+    print(f"on_message: ({message.content.replace("\n", "\\n")[:32]}...)")
 
     if isinstance(message.channel, discord.TextChannel) and message.channel.is_nsfw():
         print(f"NSFW channel, skipping message.")
@@ -83,7 +83,7 @@ async def on_message(message):
 
 @bot.event
 async def on_message_edit(before, after):
-    print(f"on_message_edit: ({after.content[:32].replace("\n", "\\n")}...)")
+    print(f"on_message_edit: ({after.content.replace("\n", "\\n")[:32]}...)")
 
     if isinstance(after.channel, discord.TextChannel) and after.channel.is_nsfw():
         print(f"NSFW channel, skipping message.")
