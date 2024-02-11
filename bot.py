@@ -45,7 +45,12 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    print(f"on_message: ({message[:32]}...)")
+    print(f"on_message: ({message.content[:32]}...)")
+
+    if isinstance(message.channel, discord.TextChannel) and message.channel.is_nsfw():
+        print(f"NSFW channel, skipping message.")
+        return
+
     # Ignore messages sent by the bot
     if message.author == bot.user:
         return
@@ -61,21 +66,29 @@ async def on_message(message):
         await bot.invoke(ctx)
         return
 
-    guild_id = message.guild.id if message.guild else None
     is_direct_message = isinstance(message.channel, discord.DMChannel)
+    guild_id = message.guild.id if message.guild else None
 
     channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else message.channel.name
 
-    if not is_direct_message and config_helper.is_channel_listened(guild_id, channel_name):
-        storage.insert_message(str(message.author.id), message.content, str(message.channel.id), channel_name,
-                               str(guild_id), is_direct_message)
+    is_channel_listener=config_helper.is_channel_listened(guild_id, channel_name)
+    if not is_direct_message and is_channel_listener:
+        str_message_author_id=str(message.author.id)
+        str_message_channel_id=str(message.channel.id)
+        str_guild_id=str(guild_id)
+        storage.insert_message(str_message_author_id, message.content, str_message_channel_id, channel_name, str_guild_id, is_direct_message)
 
     await bot.process_commands(message)
 
 
 @bot.event
 async def on_message_edit(before, after):
-    print(f"on_message_edit: ({after[:32]}...)")
+    print(f"on_message_edit: ({after.content[:32]}...)")
+
+    if isinstance(after.channel, discord.TextChannel) and after.channel.is_nsfw():
+        print(f"NSFW channel, skipping message.")
+        return
+
     # Ignore messages sent by the bot
     if before.author == bot.user:
         return
@@ -163,7 +176,8 @@ async def ask(ctx, *, question):
 
 @bot.event
 async def on_error(event, *args, **kwargs):
-    print(f'error: {event} {args}')
+    print(f'error.event: {event}')
+    print(f'error.args: {args}')
     with open('err.log', 'a', encoding='utf-8') as f:
         if event == 'on_message':
             f.write(f'Unhandled message: {args[0]}\n')

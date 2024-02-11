@@ -82,8 +82,8 @@ class Storage:
         print(f"summaries: {summaries}", flush=True)
         return summaries
 
-    def get_listened_channels(self):
-        config = self.config_collection.find_one({"config_type": "listened_channels"})
+    def get_listened_channels(self, guild_id):
+        config = self.config_collection.find_one({"guild_id": guild_id, "config_type": "listened_channels"})
         return config.get("channels", {}) if config else {}
 
     def getconfig(self, guild_id):
