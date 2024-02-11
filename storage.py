@@ -1,8 +1,10 @@
-import os
 import json
-from pymongo import MongoClient
+import os
 import uuid
 from datetime import datetime
+
+from pymongo import MongoClient
+
 
 class Storage:
     def __init__(self):
@@ -12,7 +14,6 @@ class Storage:
         self.db = self.client.memorittap
         self.messages_collection = self.db.messages
         self.config_collection = self.db.config
-
 
     def insert_message(self, author_id, text, channel_id, channel_name, guild_id, direct_message):
         document = {
@@ -54,7 +55,6 @@ class Storage:
             upsert=True
         )
 
-
     def get_messages_summary(self):
         summaries = []
 
@@ -76,7 +76,8 @@ class Storage:
             # header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
             # summaries.append(header)
 
-            summaries.append({"guild_id": guild_id, "channel_id": channel_id, "channel_name": channel_name, "message_count": message_count})
+            summaries.append({"guild_id": guild_id, "channel_id": channel_id, "channel_name": channel_name,
+                              "message_count": message_count})
 
         print(f"summaries: {summaries}", flush=True)
         return summaries
@@ -84,7 +85,6 @@ class Storage:
     def get_listened_channels(self):
         config = self.config_collection.find_one({"config_type": "listened_channels"})
         return config.get("channels", {}) if config else {}
-
 
     def getconfig(self, guild_id):
         # config = self.config_collection.find_one({"guild_id": guild_id})
@@ -98,6 +98,15 @@ class Storage:
         print(f"configuration for {guild_id}: {configuration}")
         return json_data
 
+
+    def add_listened_channel(self, guild_id, channel_name):
+        result = self.config_collection.update_one(
+            {"guild_id": guild_id, "config_type": "listened_channels"},
+            {"$addToSet": {"channels": channel_name}},
+            upsert=True
+        )
+        print(f"add_listened_channel modified_count: {result.modified_count}")
+        return result
 
     def remove_listened_channel(self, guild_id, channel_name):
         result = self.config_collection.update_one(
