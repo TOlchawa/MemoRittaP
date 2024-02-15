@@ -1,7 +1,8 @@
 class SummaryManager:
-    def __init__(self, bot, storage):
+    def __init__(self, bot, storage, openai_helper):
         self.bot = bot
         self.storage = storage
+        self.openai_helper = openai_helper
 
     async def process_summaries(self):
         summaries = self.storage.get_messages_summary()
@@ -10,9 +11,15 @@ class SummaryManager:
             print(f'summary h: {h}')
             g_id = h["guild_id"]
             print(f'summary h["guild_id"]: {g_id}')
-            await self.send_message_to_channel(h["guild_id"], h["channel_id"], h["message_count"])
 
-    async def send_message_to_channel(self, guild_id, channel_id, message_content):
+            final_summary = await self.openai_helper.summarize_messages(h["message_list"])
+            print(final_summary)
+
+            await self.send_message_to_channel(h["guild_id"], h["channel_id"], final_summary)
+
+    async def send_message_to_channel(self, str_guild_id, str_channel_id, message_content):
+        guild_id=int(str_guild_id)
+        channel_id=int(str_channel_id)
         guild = self.bot.get_guild(guild_id)
         if guild is None:
             print(f"Nie znaleziono serwera o ID: {guild_id}")

@@ -15,11 +15,12 @@ class Storage:
         self.messages_collection = self.db.messages
         self.config_collection = self.db.config
 
-    def insert_message(self, author_id, text, channel_id, channel_name, guild_id, direct_message):
+    def insert_message(self, author_id, author_name, text, channel_id, channel_name, guild_id, direct_message):
         document = {
             "uuid": str(uuid.uuid4()),
             "author_id": author_id,
-            "text": text,
+            "author_name": author_name,
+            "text": author_name + ": " + text,
             "timestamp": datetime.utcnow(),
             "modified": False,
             "channel_id": channel_id,
@@ -58,11 +59,12 @@ class Storage:
     def get_messages_summary(self):
         summaries = []
 
-        # Aggregation pipeline to group messages by server and channel
+        # Aggregation pipeline to group messages by server and channel and collect message texts
         pipeline = [
             {"$group": {
                 "_id": {"guild_id": "$guild_id", "channel_id": "$channel_id", "channel_name": "$channel_name"},
-                "message_count": {"$sum": 1}
+                "message_count": {"$sum": 1},
+                "messages": {"$push": "$text"}  # Zmiana z "$direct_message" na "$text"
             }}
         ]
         results = self.messages_collection.aggregate(pipeline)
@@ -72,18 +74,21 @@ class Storage:
             channel_id = result["_id"]["channel_id"]
             channel_name = result["_id"]["channel_name"]
             message_count = result["message_count"]
+            messages = result["messages"]  # This is your list of message texts
 
-            # header = f"Server: {guild_id}, Channel: {channel_name} ({channel_id}), Messages: {message_count}"
-            # summaries.append(header)
-
-            summaries.append({"guild_id": guild_id, "channel_id": channel_id, "channel_name": channel_name,
-                              "message_count": message_count})
+            summaries.append({
+                "guild_id": guild_id,
+                "channel_id": channel_id,
+                "channel_name": channel_name,
+                "message_count": message_count,
+                "message_list": messages  # Dodano listę treści wiadomości tutaj
+            })
 
         print(f"summaries: {summaries}", flush=True)
         return summaries
 
     def get_listened_channels(self, guild_id):
-        config = self.config_collection.find_one({"guild_id": guild_id, "config_type": "listened_channels"})
+        config = self.config_collection.find_one({"guild_id": str(guild_id), "config_type": "listened_channels"})
         return config.get("channels", {}) if config else {}
 
     def getconfig(self, guild_id):

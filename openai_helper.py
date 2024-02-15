@@ -29,3 +29,26 @@ class OpenAIHelper:
             return response_txt
         except Exception as e:
             return 'An error occurred: {}'.format(str(e))
+
+
+    async def summarize_messages(self, message_list):
+        messages = [
+            {"role": "user", "content": msg} for msg in message_list
+        ]
+
+        try:
+            completion = await self.client_openai.chat.completions.create(
+                model="gpt-4-1106-preview",
+                messages=[
+                             {"role": "system", "content": "You are a helpful assistant. Summarize the following conversation."},
+                         ] + messages,
+                max_tokens=self.max_tokens
+            )
+
+            response_str = completion.model_dump_json(indent=2)
+            response_json = json.loads(response_str)
+            response_txt = response_json['choices'][0]['message']['content']
+
+            return response_txt
+        except Exception as e:
+            return 'An error occurred: {}'.format(str(e))

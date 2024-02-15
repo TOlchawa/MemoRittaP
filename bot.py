@@ -1,11 +1,13 @@
-import discord
-import os
 import asyncio
+import os
+
+import discord
 from discord.ext import commands
-from storage import Storage
+
+from configuration_helper import ConfigurationHelper
 from openai_helper import OpenAIHelper
 from process_summaries import SummaryManager
-from configuration_helper import ConfigurationHelper
+from storage import Storage
 
 DIRECT_MESSAGE_CHANNEL_NAME = 'Direct Message'
 
@@ -17,8 +19,8 @@ storage = Storage()
 openai_helper = OpenAIHelper()
 config_helper = ConfigurationHelper(storage)
 
+
 intents = discord.Intents.default()
-intents.members = True
 intents.messages = True  # Enable message intent
 intents.message_content = True  # Enable message content intent
 
@@ -29,12 +31,7 @@ class MyBot(commands.Bot):
         # Setup tasks here
         await setup()
 
-
 bot = MyBot(command_prefix='!', intents=intents)
-
-
-# Create an instance of the bot
-# bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 # Define an event
@@ -45,12 +42,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
-    start_message=message.content.replace("\n", "\\n")[:32]
+    start_message = message.content.replace("\n", "\\n")[:32]
     print(f"on_message: ({start_message}...)")
 
     if isinstance(message.channel, discord.TextChannel) and message.channel.is_nsfw():
         print(f"NSFW channel, skipping message.")
         return
+
 
     # Ignore messages sent by the bot
     if message.author == bot.user:
@@ -72,19 +70,22 @@ async def on_message(message):
 
     channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else message.channel.name
 
-    is_channel_listener=config_helper.is_channel_listened(guild_id, channel_name)
+    is_channel_listener = config_helper.is_channel_listened(guild_id, channel_name)
+
     if not is_direct_message and is_channel_listener:
-        str_message_author_id=str(message.author.id)
-        str_message_channel_id=str(message.channel.id)
-        str_guild_id=str(guild_id)
-        storage.insert_message(str_message_author_id, message.content, str_message_channel_id, channel_name, str_guild_id, is_direct_message)
+        str_message_author_id = str(message.author.id)
+        str_message_author_name = str(message.author.display_name)
+        str_message_channel_id = str(message.channel.id)
+        str_guild_id = str(guild_id)
+        storage.insert_message(str_message_author_id, str_message_author_name, message.content, str_message_channel_id, channel_name,
+                               str_guild_id, is_direct_message)
 
     await bot.process_commands(message)
 
 
 @bot.event
 async def on_message_edit(before, after):
-    start_message=after.content.replace("\n", "\\n")[:32]
+    start_message = after.content.replace("\n", "\\n")[:32]
     print(f"on_message: ({start_message}...)")
 
     if isinstance(after.channel, discord.TextChannel) and after.channel.is_nsfw():
@@ -106,6 +107,7 @@ async def on_message_edit(before, after):
         channel_name = DIRECT_MESSAGE_CHANNEL_NAME if is_direct_message else after.channel.name
 
         if not is_direct_message and config_helper.is_channel_listened(guild_id, channel_name):
+            print(f"update message: {start_message}")
             storage.update_message(before.id, after.content, str(after.channel.id), after.channel.name, str(guild_id),
                                    is_direct_message)
 
@@ -193,13 +195,14 @@ async def setup():
 
 async def background_task():
     scheduler_period = int(os.getenv('SCHEDULER_PERIOD', 1))
-    summary_manager = SummaryManager(bot, storage)
+    summary_manager = SummaryManager(bot, storage, openai_helper)
+
     while not bot.is_closed():
         print("Executing scheduled task", flush=True)
-
+        await asyncio.sleep(scheduler_period * 10)
         await summary_manager.process_summaries()
 
-        await asyncio.sleep(scheduler_period * 60)
+
 
 
 # Run the bot with your token
