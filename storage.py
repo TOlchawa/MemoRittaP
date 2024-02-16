@@ -20,7 +20,7 @@ class Storage:
             "uuid": str(uuid.uuid4()),
             "author_id": author_id,
             "author_name": author_name,
-            "text": author_name + ": " + text,
+            "text": "'" + author_name + "' said: " + text,
             "timestamp": datetime.utcnow(),
             "modified": False,
             "channel_id": channel_id,

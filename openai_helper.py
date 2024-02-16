@@ -16,7 +16,9 @@ class OpenAIHelper:
             completion = await self.client_openai.chat.completions.create(
                 model="gpt-4-1106-preview",
                 messages=[
-                    {"role": "system", "content": "You are a helpful assistant designed to help in prepare summary from conversation."},
+                    {"role": "system", "content": "Jesteś bardzo dobrze wykształconym filozofem z obszerną wiedzą socjopolityczną (ze specjalizacją w historii politycznej USA). "
+                                                  "Odpowiadaj w stylu Harvardzkim, kierując się zasadami podobnymi do tych stosowanych w debatach uniwersyteckich. "
+                                                  "Odpowiadaj w języku, w którym zostało zadane pytanie."},
                     {"role": "user", "content": question}
                 ],
                 max_tokens=self.max_tokens
@@ -40,7 +42,14 @@ class OpenAIHelper:
             completion = await self.client_openai.chat.completions.create(
                 model="gpt-4-1106-preview",
                 messages=[
-                             {"role": "system", "content": "You are a helpful assistant. Summarize the following conversation."},
+                             {"role": "system",
+                              "content":
+                                 "1. Zidentyfikuj kluczowe tematy dyskusji i wyróżnij główne argumenty przedstawione przez uczestników.\n" +
+                                 "2. Zwróć uwagę na wszelkie wspólne wnioski lub obszary zgody między uczestnikami.\n" +
+                                 "3. Podkreśl wszelkie istotne pytania, wątpliwości lub obszary kontrowersji, które pojawiły się w trakcie dyskusji.\n" +
+                                 "4. Zapewnij krótkie wprowadzenie i zakończenie, które łączy całe podsumowanie i podkreśla znaczenie dyskusji.\n" +
+                                 "5. Staraj się zachować neutralny ton i obiektywnie przedstawiać różne punkty widzenia.\n" +
+                                 "Po zakończeniu, przedstaw podsumowanie w jasny i uporządkowany sposób, umożliwiając szybkie zrozumienie głównych punktów dyskusji."},
                          ] + messages,
                 max_tokens=self.max_tokens
             )
