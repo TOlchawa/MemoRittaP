@@ -87,6 +87,22 @@ class Storage:
         print(f"summaries: {summaries}", flush=True)
         return summaries
 
+    def remove_messages(self, summaries):
+        # remove all records from 'summaries' greated in get_messages_summary(self)
+        for summary in summaries:
+            # Extract guild_id and channel_id from the summary
+            guild_id = summary['guild_id']
+            channel_id = summary['channel_id']
+
+            # Build a query to match messages belonging to the specific guild_id and channel_id
+            query = {"guild_id": guild_id, "channel_id": channel_id}
+
+            # Execute the delete operation on the messages_collection
+            result = self.messages_collection.delete_many(query)
+
+            # Optionally, you can print the result of the delete operation
+            print(f"Removed {result.deleted_count} messages from guild {guild_id}, channel {channel_id}", flush=True)
+
     def get_listened_channels(self, guild_id):
         config = self.config_collection.find_one({"guild_id": str(guild_id), "config_type": "listened_channels"})
         return config.get("channels", {}) if config else {}
@@ -102,7 +118,6 @@ class Storage:
         json_data = json.dumps(configuration, default=str)
         print(f"configuration for {guild_id}: {configuration}")
         return json_data
-
 
     def add_listened_channel(self, guild_id, channel_name):
         result = self.config_collection.update_one(

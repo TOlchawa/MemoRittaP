@@ -22,6 +22,7 @@ class SummaryManager:
             if message_count >= self.min_number_of_messages and message_sum_len >= self.min_total_len_messages:
                 final_summary = await self.openai_helper.summarize_messages(h["message_list"])
                 await self.send_message_to_channel(h["guild_id"], h["channel_id"], final_summary)
+                self.storage.remove_messages(summaries)
 
     async def send_message_to_channel(self, str_guild_id, str_channel_id, message_content):
         guild_id = int(str_guild_id)
